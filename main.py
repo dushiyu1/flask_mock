@@ -1,6 +1,8 @@
 import json
 import random
+import sys
 
+import daemon
 from flask import Flask, jsonify, request
 
 from data.sap_data import SapData
@@ -47,4 +49,11 @@ def test():
         return Response.error({"msg":"登录异常"})
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    # 1. 绑定0.0.0.0（允许所有IP访问），端口5000
+    # 2. 用daemon实现后台运行，避免Jenkins卡住
+    if len(sys.argv) > 1 and sys.argv[1] == "daemon":
+        with daemon.DaemonContext():
+            app.run(host="0.0.0.0", port=5000, debug=False)
+    else:
+        # 本地调试用前台运行，Jenkins用后台
+        app.run(host="0.0.0.0", port=5000, debug=False)
